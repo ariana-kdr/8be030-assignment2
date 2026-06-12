@@ -3,7 +3,8 @@
 ### TODOS YOUSRA: 
 
 1.2 
-- Add a (short) description of each feature and why it is chosen, make sure to motivate the σ and window size choice (preferably with some literature) 
+- Add a (short) description of each feature and why it is chosen, make sure to motivate the σ and window size choice (preferably with some literature)
+
 3.3/3.4 
 - Look at the results of segmentation_demo() below and explain how our method compares to the combined kNN results 
 - First explain the difference between the combined kNN method and our method 
