@@ -464,18 +464,32 @@ def find_best_segmentation(train_subject, test_subject, slice_number=1, n_train_
     return best_fs, best_model, best_err, best_dice, results_sorted
 
 
-
+def dice_per_class(y_true, y_pred, class_names={0:'Background', 1:'White matter', 2:'Gray matter', 3:'CSF'}):
+    scores = {}
+    for c, name in class_names.items():
+        true_c = (y_true == c)
+        pred_c = (y_pred == c)
+        intersection = np.sum(true_c & pred_c)
+        dice = 2 * intersection / (np.sum(true_c) + np.sum(pred_c) + 1e-8)
+        scores[name] = dice
+    
+    return scores
 
     
-    # n = t1.shape[0]
-    # features = ()
-
-    # t1f = t1.flatten().T.astype(float)
-    # t1f = t1f.reshape(-1, 1)
-    # t2f = t2.flatten().T.astype(float)
-    # t2f = t2f.reshape(-1, 1)
-
-    # X = np.concatenate((t1f, t2f), axis=1)
-
-    # features += ('T1 intensity',)
-    # features += ('T2 intensity',)
+def learning_curve_dice(X_train, y_train, X_test, y_test, cols, sample_sizes, model_fn, n_repeats=5):
+    # Returns mean and std of Dice scores across n_repeats runs for each sample size
+    all_scores = np.zeros((n_repeats, len(sample_sizes)))
+    
+    for repeat in range(n_repeats):
+        for j, n in enumerate(sample_sizes):
+            idx = np.random.choice(len(y_train), size=min(n, len(y_train)), replace=False)
+            model = model_fn()
+            model.fit(X_train[idx][:, cols], y_train[idx])
+            y_pred = model.predict(X_test[:, cols])
+            dice = dice_multiclass(y_test.reshape(-1,1), y_pred.reshape(-1,1))
+            all_scores[repeat, j] = dice
+    
+    mean_scores = np.mean(all_scores, axis=0)
+    std_scores  = np.std(all_scores, axis=0)
+    
+    return mean_scores, std_scores
